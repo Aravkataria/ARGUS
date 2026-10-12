@@ -1,0 +1,70 @@
+# ==============================
+# Python
+# ==============================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# ==============================
+# Virtual environments
+# ==============================
+.venv/
+venv/
+env/
+ENV/
+
+# ==============================
+# Environment / secrets
+# ==============================
+.env
+.env.*
+!.env.example
+
+# ==============================
+# Testing / tooling
+# ==============================
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# ==============================
+# Jupyter
+# ==============================
+.ipynb_checkpoints/
+*.ipynb_checkpoints/
+.virtual_documents/
+
+# ==============================
+# ARGUS runtime data
+# ==============================
+app/data/uploads/*
+!app/data/uploads/.gitkeep
+
+app/data/blacklist.json
+
+# ==============================
+# ARGUS large / temporary weights
+# ==============================
+argus-vision-test/weights/
+
+# ==============================
+# ARGUS generated notebook output
+# ==============================
+model/results/__results___files/
+
+# Don't store duplicate trained models inside results
+model/results/ARGUS_DATASET/models/
+
+# ==============================
+# OS / IDE
+# ==============================
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+# Additional testing and coverage artifacts
+.coverage.*
+*.cover
+.cache

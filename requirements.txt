@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+python-multipart
+opencv-python-headless
+Pillow
+numpy
+easyocr
+mrz
+python-dateutil
+exifread
+certifi
+pytest
+httpx

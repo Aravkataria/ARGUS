@@ -1,0 +1,5 @@
+Recommended threshold based on validation F1: 0.69
+Validation F1: 0.762646
+Validation Precision: 0.759690
+Validation Recall: 0.765625
+Validation Accuracy: 0.840314

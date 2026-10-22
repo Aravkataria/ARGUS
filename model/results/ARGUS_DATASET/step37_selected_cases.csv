@@ -1,0 +1,10 @@
+sample_id,source_dataset,true_label,predicted_label,forged_probability,case_type
+CASIA2_Au_ani_20070.jpg,CASIA2,authentic,forged,0.9984546,False Positive
+CASIA2_Au_nat_20032.jpg,CASIA2,authentic,forged,0.99794954,False Positive
+CASIA2_Au_sec_10002.jpg,CASIA2,authentic,forged,0.9957332,False Positive
+CASIA2_Tp_S_NNN_S_N_sec00013_sec00013_11228.jpg,CASIA2,forged,authentic,0.0006420157,False Negative
+CASIA2_Tp_S_NNN_S_N_arc20093_arc20093_01733.tif,CASIA2,forged,authentic,0.00094302656,False Negative
+CASIA2_Tp_D_NNN_S_N_sec00098_sec00082_10364.tif,CASIA2,forged,authentic,0.0019463653,False Negative
+CASIA2_Au_arc_30254.jpg,CASIA2,authentic,authentic,0.49809515,Uncertain
+CASIA2_Tp_S_CNN_S_N_sec00008_sec00008_10800.jpg,CASIA2,forged,authentic,0.49072438,Uncertain
+CASIA2_Au_nat_00075.jpg,CASIA2,authentic,authentic,0.4885883,Uncertain

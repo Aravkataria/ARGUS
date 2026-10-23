@@ -1,13 +1,31 @@
+# ==========================================
+# ARGUS - Core Microservice & API
+# ==========================================
 fastapi
 uvicorn[standard]
 python-multipart
+httpx
+
+# ==========================================
+# Computer Vision & Forensic Deep Learning
+# ==========================================
+torch>=2.0.0
+torchvision>=0.15.0
 opencv-python-headless
 Pillow
 numpy
+
+# ==========================================
+# Document Processing & Optical Extraction
+# ==========================================
+pymupdf
 easyocr
 mrz
 python-dateutil
 exifread
 certifi
+
+# ==========================================
+# Testing & Validation Suite
+# ==========================================
 pytest
-httpx

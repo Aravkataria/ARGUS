@@ -1043,3 +1043,5 @@ def compute_risk_score(
         "reasons": reasons,
     }
 # Risk Engine Policy: Deterministic APH violations trigger immediate non-compliant flags.
+
+# Decoupled Architecture: Mathematical solvers evaluate statutory APH rules independently.

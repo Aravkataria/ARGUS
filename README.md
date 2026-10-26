@@ -49,14 +49,15 @@ Annual regulatory approvals (Extension of Approval - EoA, New Institution Approv
 
 ## 📊 Empirical Benchmark Validation
 
-| Metric | Benchmark Result | Evaluation Environment & Methodology |
+| Metric | Benchmark Result | Evaluation Environment & Experimental Protocol |
 | :--- | :--- | :--- |
-| **Visual Forgery Accuracy** | **85.3%** | CASIA v2.0 Benchmark (N=1,200 pairs, 80/20 test split, τ = 0.65) |
-| **ROC-AUC Score** | **90.2%** | Standard Monotonic Spline Integration (FPR: 8.0%, TPR: 85.3%) |
-| **Raw CNN Patch Latency** | **< 140 ms / patch** | INT8 Quantized EfficientNet-B0 on 4-Core CPU (Zero GPU) |
-| **End-to-End Pipeline Latency** | **< 1.8 s / page** | PDF Rasterization (300 DPI) + OCR + Multi-Scale ELA + Rule Check |
-| **Target Worker Throughput** | **~800 dossiers / day** | Per 4-Core Commodity Node (Designed for Horizontal Scaling) |
-| **Scrutiny Turnaround Time** | **< 15 Minutes** (vs 14 days manual) | Complete 200+ Page Institutional Dossier Scrutiny |
+| **Visual Forgery Accuracy** | **85.3%** | Binary forgery classification on held-out test split (threshold τ = 0.65 tuned via validation split) |
+| **ROC-AUC Score** | **90.2%** | CASIA v2.0 document subset (N=1,200 balanced images; split at source-image level to prevent leakage) |
+| **Operating Point** | **TPR: 85.3%, FPR: 8.0%** | Measured on held-out test split with zero source-image overlap |
+| **Raw CNN Patch Latency** | **< 140 ms / patch** | PyTorch INT8 Quantized EfficientNet-B0 forward-pass on 4-Core CPU |
+| **End-to-End Pipeline Latency** | **< 1.8 s / page** | Full pipeline: 300 DPI rasterization + EasyOCR + Multi-Scale ELA + deterministic constraint evaluation |
+| **Target Worker Throughput** | **~800 dossiers / day** | Target throughput per 4-core node with stateless Redis + FastAPI workers |
+| **Scrutiny Turnaround Time** | **< 15 Minutes (Target)** | Projected acceleration from standard 14-day committee cycle for 200+ page institutional dossiers |
 
 ---
 
@@ -71,7 +72,7 @@ Annual regulatory approvals (Extension of Approval - EoA, New Institution Approv
 - **Target Throughput:** Designed for ~800 institutional dossiers per day per 4-core node during April–May peak submission spikes.
 - **Estimated Cost Reduction:** ~85% compute cost reduction compared to continuous GPU cloud cluster provisioning.
 
-*Note: Institutional deficiency samples shown in demonstrations represent synthetic benchmark scenarios based on AICTE Approval Process Handbook (APH) guidelines, and do not constitute actual regulatory adjudications.*
+*Note: Institutional deficiency samples shown in demonstrations represent synthetic benchmark scenarios based on AICTE Approval Process Handbook (APH) guidelines, and do not constitute actual regulatory adjudications. Faculty deduplication utilizes salted one-way cryptographic hashes (HMAC-SHA256) and feature embeddings; duplicate flags serve as advisory screening prompts for committee review, not automated determinations.*
 
 ---
 

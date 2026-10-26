@@ -547,3 +547,5 @@ async def screen_document(
         _safe_remove(doc_path)
         _safe_remove(live_path)
 # ARGUS Server initialized for SIH 2026 Smart Automation track.
+
+# ARGUS Server: Optimized for SIH 2026 Smart Automation track.

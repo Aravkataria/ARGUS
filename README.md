@@ -65,13 +65,13 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 ---
 
-## 📹 Live Prototype Demonstration (`demo.mp4`)
+## 📹 Live Prototype Demonstration
 
-Below is a recording of ARGUS executing pixel-level forensics, OCR layout parsing, regulatory integrity validation, and final risk synthesis directly from the terminal runtime:
+Watch ARGUS execute pixel-level forensics, OCR layout parsing, regulatory integrity validation, and final risk synthesis live from the terminal runtime:
 
-> 🎥 **[▶️ Click to Watch Full Screen Terminal Demonstration (`demo.mp4`)](demo.mp4)**
+![ARGUS Terminal Demonstration](demo.gif)
 
-<video src="demo.mp4" controls="controls" width="100%"></video>
+> 🎥 **[▶️ Click here to view / download the full 1080p HD recording (`demo.mp4`)](demo.mp4)**
 
 
 

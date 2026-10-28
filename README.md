@@ -14,6 +14,9 @@
 
 ---
 
+## SIH 2026 – PS 26261 (AICTE)
+This repo contains the forensic and explainable risk-scoring core of ARGUS (OCR validation, ELA + EXIF tamper detection, risk engine). It is being extended for AICTE Extension-of-Approval dossiers: APH rule engine, signature/QR verification, cross-document checks and an officer dashboard are planned.
+
 ## 🏛️ Executive Summary & SIH26261 Mission
 
 **ARGUS** is an on-premises, air-gap-ready regulatory screening and document forensic engine designed for educational and accreditation governance bodies (such as the **All India Council for Technical Education - AICTE**, State Technical Boards, and Universities). 

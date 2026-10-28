@@ -469,21 +469,24 @@ def _score_passport(
     score = 0.0
     evidence: List[str] = []
 
-    # ------------------------------------------------------------------------
-    # MRZ
-    # ------------------------------------------------------------------------
+    raw_type = ocr_result.get("document_type")
+    explicit_type = str(raw_type).strip().upper() if raw_type else ""
 
-    mrz_score, mrz_evidence = _mrz_score(
-        ocr_result
-    )
-
-    if mrz_score > 0:
-
-        score += mrz_score
-
-        evidence.extend(
-            mrz_evidence
+    # If the MRZ type character explicitly designates Visa (V) or National ID (A, C, I),
+    # do NOT count MRZ towards passport.
+    if explicit_type not in ("V", "A", "C", "I"):
+        mrz_score, mrz_evidence = _mrz_score(
+            ocr_result
         )
+
+        if mrz_score > 0:
+            score += mrz_score
+            evidence.extend(
+                mrz_evidence
+            )
+            if explicit_type == "P" or ocr_result.get("mrz_format") == "TD3":
+                score += 30.0
+                evidence.append("MRZ format/type character indicates passport (P/TD3)")
 
     # ------------------------------------------------------------------------
     # Explicit passport keywords
@@ -615,15 +618,12 @@ def _score_visa(
     # Visa document type from OCR/MRZ
     # ------------------------------------------------------------------------
 
-    explicit_type = _normalize_text(
-        ocr_result.get(
-            "document_type"
-        )
-    )
+    raw_type = ocr_result.get("document_type")
+    explicit_type = str(raw_type).strip().upper() if raw_type else ""
 
-    if explicit_type == "V":
+    if explicit_type == "V" or explicit_type.startswith("V"):
 
-        score += 40.0
+        score += 60.0
 
         evidence.append(
             "OCR/MRZ document-type marker indicates visa"
@@ -677,8 +677,8 @@ def _score_driving_license(
     if found:
 
         score += min(
-            50.0,
-            20.0 * len(found),
+            60.0,
+            45.0 * len(found),
         )
 
         evidence.append(
@@ -746,6 +746,15 @@ def _score_national_id(
     score = 0.0
     evidence: List[str] = []
 
+    raw_type = ocr_result.get("document_type")
+    explicit_type = str(raw_type).strip().upper() if raw_type else ""
+
+    if explicit_type in ("A", "C", "I"):
+        score += 60.0
+        evidence.append(
+            f"OCR/MRZ document-type marker indicates national ID ({explicit_type})"
+        )
+
     # ------------------------------------------------------------------------
     # Explicit national-ID keywords
     # ------------------------------------------------------------------------
@@ -789,7 +798,15 @@ def _score_national_id(
     ]
 
     # Generic fields are useful supporting evidence only.
-    if len(field_hits) >= 4:
+    if len(field_hits) >= 5:
+
+        score += 55.0
+
+        evidence.append(
+            "All primary national-identity fields detected"
+        )
+
+    elif len(field_hits) >= 4:
 
         score += 20.0
 

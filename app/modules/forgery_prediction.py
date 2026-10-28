@@ -52,7 +52,19 @@ probability that a document is forged.
 import re
 
 from datetime import date, datetime
-from typing import Optional
+from typing import Any, Optional
+
+
+def _safe_float(
+    value: Any,
+    default: float = 0.0,
+) -> float:
+    try:
+        if value is None:
+            return default
+        return float(value)
+    except (TypeError, ValueError):
+        return default
 
 from app.modules.document_type_identification import (
     identify_document_type,
@@ -1108,7 +1120,7 @@ def predict_forgery(
 
                     conf_note = (
                         f" [MRZ OCR confidence: "
-                        f"{mrz_conf:.0%} - reasonably high]"
+                        f"{mrz_conf:.0%} - reasonably high, less likely to be simple OCR noise]"
                     )
 
             reasons.append(

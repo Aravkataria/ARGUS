@@ -45,7 +45,7 @@ for passports, Aadhaar, driving licences, visas, etc. Document-specific
 evidence quality is handled upstream by evidence_quality.py.
 """
 
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 
 # ============================================================================
@@ -280,7 +280,7 @@ def compute_risk_score(
     forgery: Dict[str, Any],
     tampering: Dict[str, Any],
     face: Dict[str, Any],
-    evidence_quality: Dict[str, Any],
+    evidence_quality: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """
     Compute ARGUS's final risk assessment.
@@ -354,11 +354,14 @@ def compute_risk_score(
         else {}
     )
 
-    evidence_quality = (
-        evidence_quality
-        if isinstance(evidence_quality, dict)
-        else {}
-    )
+    if evidence_quality is None:
+        evidence_quality = {
+            "score": 1.0,
+            "sufficient_for_decision": True,
+            "quality_label": "HIGH",
+        }
+    elif not isinstance(evidence_quality, dict):
+        evidence_quality = {}
 
     # =========================================================================
     # 1. EVIDENCE QUALITY
@@ -405,12 +408,11 @@ def compute_risk_score(
     # 3. RULE-BASED FORGERY RISK
     # =========================================================================
 
-    rules = forgery.get(
-        "rules",
-        {},
-    )
-
-    if not isinstance(rules, dict):
+    if isinstance(forgery.get("rules"), dict):
+        rules = forgery["rules"]
+    elif isinstance(forgery, dict):
+        rules = forgery
+    else:
         rules = {}
 
     rule_score = _safe_float(
@@ -570,6 +572,20 @@ def compute_risk_score(
     raw_risk = _clamp(
         raw_risk
     )
+
+    is_blacklisted = (
+        validation.get("is_blacklisted") is True
+        or rules.get("triggered_signals", {}).get("blacklisted") is True
+    )
+
+    if is_blacklisted:
+        raw_risk = max(raw_risk, 0.95)
+
+    if is_expired:
+        raw_risk = max(raw_risk, 0.35)
+
+    if tampering_risk >= 0.70:
+        raw_risk = max(raw_risk, 0.55)
 
     risk_score = round(
         raw_risk * 100.0,
@@ -781,6 +797,19 @@ def compute_risk_score(
             tier = "LOW"
 
             decision = "LIKELY_AUTHENTIC"
+
+        if is_blacklisted:
+            tier = "HIGH"
+            decision = "LIKELY_FORGED"
+            _append_unique(reasons, "Document matches a known blacklist entry")
+
+        elif is_expired and tier == "LOW":
+            tier = "MEDIUM"
+            decision = "SUSPICIOUS"
+
+        elif tampering_risk >= 0.70 and tier == "LOW":
+            tier = "MEDIUM"
+            decision = "SUSPICIOUS" 
 
     # =========================================================================
     # 12. DIRECT FORGERY OVERRIDE

@@ -106,10 +106,30 @@ def _patch_pipeline(monkeypatch, ocr_result=None, tampering_result=None,
             capture_paths.append(live_path)
         return face_result or {"performed": True, "match": True, "similarity": 0.9, "note": None}
 
+    def fake_evidence_quality(**kwargs):
+        return {
+            "score": 0.95,
+            "quality_label": "HIGH",
+            "tier": "HIGH",
+            "sufficient_for_decision": True,
+            "reasons": [],
+            "positive_evidence": [],
+        }
+
+    def fake_visual_forgery(path):
+        return {
+            "forged_probability": 0.05,
+            "authentic_probability": 0.95,
+            "forgery_detected": False,
+            "confidence": 0.95,
+        }
+
     monkeypatch.setattr("app.main.extract_document_fields", fake_extract)
     monkeypatch.setattr("app.main.identify_document_type", fake_identify)
     monkeypatch.setattr("app.main.analyze_tampering", fake_tampering)
     monkeypatch.setattr("app.main.verify_face", fake_verify_face)
+    monkeypatch.setattr("app.main.assess_evidence_quality", fake_evidence_quality)
+    monkeypatch.setattr("app.main.predict_visual_forgery", fake_visual_forgery)
 
 
 # ---------------------------------------------------------------------------

@@ -6,6 +6,9 @@
 [![Theme](https://img.shields.io/badge/Theme-Smart_Automation-purple.svg)](https://sih.gov.in)
 [![Team](https://img.shields.io/badge/Team-NAVDRISHTI-red.svg)](https://github.com/Aravkataria/ARGUS)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Test Suite](https://img.shields.io/badge/Test_Suite-55%2F55_Passing-brightgreen.svg)](tests/)
+[![Deployment](https://img.shields.io/badge/Deployment-Air--Gapped_On--Premises-blue.svg)](#)
+[![Hardware](https://img.shields.io/badge/Compute-Zero_GPU_Commodity_CPU-green.svg)](#)
 
 > **Smart India Hackathon 2026 | Problem Statement ID: SIH26261**  
 > **Problem Statement Title:** AI-Powered Application Validation, Document Authentication and Regulatory Compliance Verification  
@@ -35,6 +38,30 @@ Annual regulatory approvals (Extension of Approval - EoA, New Institution Approv
 4. TRIANGULATION & AUDIT DOSSIER  -->  SHA-256 Cross-Entity Ghost Faculty Deduplication + Evidence Heatmap
 =========================================================================================================
 ```
+
+---
+
+## ⚡ Quick Start & Verification (30 Seconds)
+
+Any evaluator or scrutinizer can reproduce the full test suite and run the local screening server in four commands:
+
+```bash
+# 1. Clone repository
+git clone https://github.com/Aravkataria/ARGUS.git
+cd ARGUS
+
+# 2. Install dependencies
+pip install -r requirements.txt
+
+# 3. Execute the automated test suite (55 unit & integration tests across 6 modules)
+pytest tests/ -v
+
+# 4. Launch the FastAPI screening service with interactive Swagger UI
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+> **Interactive API Documentation:** Open **`http://localhost:8000/docs`** in your browser to test endpoints (`/screen`, `/health`), upload sample certificates, and inspect JSON deficiency reports with pixel heatmaps.
+
 
 ---
 

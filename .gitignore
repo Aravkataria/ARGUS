@@ -68,3 +68,6 @@ Thumbs.db
 .coverage.*
 *.cover
 .cache
+
+# Office temporary lock files
+~$*

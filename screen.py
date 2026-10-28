@@ -103,14 +103,10 @@ def screen_file(doc_path: str):
 
 if __name__ == "__main__":
     print_banner()
-    if len(sys.argv) > 1 and sys.argv[1] not in ("--sample", "-s"):
+    if len(sys.argv) > 1:
         doc = sys.argv[1]
+        screen_file(doc)
     else:
-        sample = os.path.join(os.path.abspath(os.path.dirname(__file__)), "sample_data", "sample_fire_noc.png")
-        if not os.path.exists(sample):
-            print(f"[-] Sample file not found at {sample}")
-            sys.exit(1)
-        doc = sample
-        print("[i] No file specified. Running demonstration on built-in sample document.")
-
-    screen_file(doc)
+        print("[-] Usage: python screen.py <path_to_document_image>")
+        print("    Example: python screen.py \"C:\\path\\to\\certificate.png\"")
+        sys.exit(0)

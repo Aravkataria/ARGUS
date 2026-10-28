@@ -71,3 +71,5 @@ Thumbs.db
 
 # Office temporary lock files
 ~$*
+
+sample_data/

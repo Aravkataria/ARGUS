@@ -9,6 +9,7 @@
 [![Test Suite](https://img.shields.io/badge/Test_Suite-55%2F55_Passing-brightgreen.svg)](tests/)
 [![Deployment](https://img.shields.io/badge/Deployment-Air--Gapped_On--Premises-blue.svg)](#)
 [![Hardware](https://img.shields.io/badge/Compute-Zero_GPU_Commodity_CPU-green.svg)](#)
+[![Demo Video](https://img.shields.io/badge/Demo_Video-Watch_27s_Terminal_Screening-red.svg)](demo.mp4)
 
 > **Smart India Hackathon 2026 | Problem Statement ID: SIH26261**  
 > **Problem Statement Title:** AI-Powered Application Validation, Document Authentication and Regulatory Compliance Verification  
@@ -61,6 +62,17 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 > **Interactive API Documentation:** Open **`http://localhost:8000/docs`** in your browser to test endpoints (`/screen`, `/health`), upload sample certificates, and inspect JSON deficiency reports with pixel heatmaps.
+
+---
+
+## 📹 Live Prototype Demonstration (`demo.mp4`)
+
+Below is a recording of ARGUS executing pixel-level forensics, OCR layout parsing, regulatory integrity validation, and final risk synthesis directly from the terminal runtime:
+
+> 🎥 **[▶️ Click to Watch Full Screen Terminal Demonstration (`demo.mp4`)](demo.mp4)**
+
+<video src="demo.mp4" controls="controls" width="100%"></video>
+
 
 
 ---

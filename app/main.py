@@ -89,6 +89,7 @@ from app.modules.forgery_prediction import predict_forgery
 from app.modules.forgery_model import predict_forgery as predict_visual_forgery
 from app.modules.risk_engine import compute_risk_score
 from app.modules.evidence_quality import assess_evidence_quality
+from app.modules.pdf_processor import is_pdf, screen_pdf_dossier
 
 
 # ============================================================================
@@ -236,10 +237,16 @@ async def screen_document(
         document.content_type or ""
     ).lower()
 
-    if not document_content_type.startswith("image/"):
+    doc_filename = (document.filename or "").lower()
+    is_pdf_upload = (
+        document_content_type in ("application/pdf", "application/x-pdf")
+        or doc_filename.endswith(".pdf")
+    )
+
+    if not is_pdf_upload and not document_content_type.startswith("image/"):
         raise HTTPException(
             status_code=400,
-            detail="Document must be an image file",
+            detail="Document must be an image or PDF file",
         )
 
     if live_photo:
@@ -267,6 +274,12 @@ async def screen_document(
     )
 
     try:
+
+        if is_pdf_upload or is_pdf(doc_path):
+            return screen_pdf_dossier(
+                pdf_path_or_bytes=doc_path,
+                live_photo_path=live_path,
+            )
 
         # ====================================================================
         # MODULE 1 — OCR + MRZ EXTRACTION
@@ -549,3 +562,21 @@ async def screen_document(
 # ARGUS Server initialized for SIH 2026 Smart Automation track.
 
 # ARGUS Server: Optimized for SIH 2026 Smart Automation track.
+
+
+# ============================================================================
+# SCREEN PDF
+# ============================================================================
+
+@app.post("/screen/pdf")
+async def screen_pdf_endpoint(
+    document: UploadFile = File(...),
+    live_photo: Optional[UploadFile] = File(None),
+):
+    """
+    Dedicated endpoint for multi-page regulatory PDF dossier screening.
+    """
+    return await screen_document(
+        document=document,
+        live_photo=live_photo,
+    )

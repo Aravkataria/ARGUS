@@ -91,20 +91,28 @@ Watch ARGUS execute pixel-level forensics, OCR layout parsing, regulatory integr
 
 ## Empirical Benchmark Validation
 
-| Metric | Benchmark Result | Evaluation Environment & Experimental Protocol |
-| :--- | :--- | :--- |
-| **Visual Forgery Accuracy** | **85.3%** | Binary forgery classification on held-out test split (threshold τ = 0.65 tuned via validation split) |
-| **ROC-AUC Score** | **90.2%** | CASIA v2.0 document subset (N=1,200 balanced images; split at source-image level to prevent leakage) |
-| **Operating Point** | **TPR: 85.3%, FPR: 8.0%** | Measured on held-out test split with zero source-image overlap |
-| **Raw CNN Patch Latency** | **< 140 ms / patch** | PyTorch INT8 Quantized EfficientNet-B0 forward-pass on 4-Core CPU |
-| **End-to-End Pipeline Latency** | **< 1.8 s / page** | Full pipeline: 300 DPI rasterization + EasyOCR + Multi-Scale ELA + deterministic constraint evaluation |
-| **Target Worker Throughput** | **~800 dossiers / day** | Target throughput per 4-core node with stateless Redis + FastAPI workers |
-| **Scrutiny Turnaround Time** | **< 15 Minutes (Target)** | Projected acceleration from standard 14-day committee cycle for 200+ page institutional dossiers |
+The core visual forgery detection module (`EfficientNet-B0`) was trained and evaluated on 2,992 document and image samples (CASIA v2.0, CEDAR, RVL-CDIP). Below are the exact quantitative metrics, accompanied by exact cell locations within the master notebook and exported CSV audit logs:
 
-> **Reproducibility & Audit Trail:**
+| Metric | Exact Result | Provenance & Exact Notebook Location | Verification Artifact File |
+| :--- | :--- | :--- | :--- |
+| **Test ROC-AUC Score** | **0.9020** (90.20%) | [`notebooks/argus_training_and_evaluation.ipynb`](notebooks/argus_training_and_evaluation.ipynb) &rarr; **Cell 18 & 29** | [`model/results/ARGUS_DATASET/step42_test_threshold_evaluation.csv`](model/results/ARGUS_DATASET/step42_test_threshold_evaluation.csv) |
+| **Calibrated Test Accuracy** | **0.8530** (85.30%) | [`notebooks/argus_training_and_evaluation.ipynb`](notebooks/argus_training_and_evaluation.ipynb) &rarr; **Cell 29** (at &tau; = 0.6900) | [`model/results/ARGUS_DATASET/step42_test_threshold_evaluation.csv`](model/results/ARGUS_DATASET/step42_test_threshold_evaluation.csv) |
+| **Default Threshold Accuracy** | **0.8419** (84.19%) | [`notebooks/argus_training_and_evaluation.ipynb`](notebooks/argus_training_and_evaluation.ipynb) &rarr; **Cell 18** (at default &tau; = 0.5000) | [`model/results/ARGUS_DATASET/test_error_analysis.csv`](model/results/ARGUS_DATASET/test_error_analysis.csv) |
+| **Test Precision (Forged)** | **0.7877** (78.77%) | [`notebooks/argus_training_and_evaluation.ipynb`](notebooks/argus_training_and_evaluation.ipynb) &rarr; **Cell 29** (at &tau; = 0.6900) | [`model/results/ARGUS_DATASET/step42_test_threshold_evaluation.csv`](model/results/ARGUS_DATASET/step42_test_threshold_evaluation.csv) |
+| **Test Recall (Forged)** | **0.7667** (76.67%) | [`notebooks/argus_training_and_evaluation.ipynb`](notebooks/argus_training_and_evaluation.ipynb) &rarr; **Cell 29** (115/150 detected) | [`model/results/ARGUS_DATASET/step42_test_threshold_evaluation.csv`](model/results/ARGUS_DATASET/step42_test_threshold_evaluation.csv) |
+| **Test F1 Score** | **0.7770** (77.70%) | [`notebooks/argus_training_and_evaluation.ipynb`](notebooks/argus_training_and_evaluation.ipynb) &rarr; **Cell 29** | [`model/results/ARGUS_DATASET/step42_test_threshold_evaluation.csv`](model/results/ARGUS_DATASET/step42_test_threshold_evaluation.csv) |
+| **Validation F1 Peak** | **0.7626** (76.26%) | [`notebooks/argus_training_and_evaluation.ipynb`](notebooks/argus_training_and_evaluation.ipynb) &rarr; **Cell 28** (at &tau; = 0.6900) | [`model/results/ARGUS_DATASET/step41_recommended_threshold.txt`](model/results/ARGUS_DATASET/step41_recommended_threshold.txt) |
+| **Test Split Confusion Matrix** | **TN: 268, FP: 31, FN: 35, TP: 115** | [`notebooks/argus_training_and_evaluation.ipynb`](notebooks/argus_training_and_evaluation.ipynb) &rarr; **Cell 29** (N = 449 test split) | [`model/results/ARGUS_DATASET/step42_test_predictions.csv`](model/results/ARGUS_DATASET/step42_test_predictions.csv) |
+| **Raw Forward-Pass Latency** | **< 140 ms / patch** | PyTorch forward-pass on commodity 4-Core CPU | [`app/modules/forgery_prediction.py`](app/modules/forgery_prediction.py) |
+| **End-to-End Pipeline Latency** | **< 1.8 s / page** | Ingestion + Multi-Scale ELA + EasyOCR + Constraint Solver | [`screen.py`](screen.py) |
+
+> **Audit Trail & Reproducibility:**
 > - Master Training & Evaluation Notebook: [`notebooks/argus_training_and_evaluation.ipynb`](notebooks/argus_training_and_evaluation.ipynb)
-> - Quantitative Benchmark Datasets & Metrics: [`model/results/ARGUS_DATASET/`](model/results/ARGUS_DATASET/)
-> - Evaluation Curves & Attention Figures: [`model/results/figures/`](model/results/figures/)
+> - Quantitative Benchmark Logs (20 CSV files): [`model/results/ARGUS_DATASET/`](model/results/ARGUS_DATASET/)
+> - Confusion Matrix & Attention Plots: [`model/results/figures/`](model/results/figures/)
+>
+> **Important Note on Operational Scope:**
+> These empirical benchmarks document the baseline performance of the isolated visual forgery CNN on held-out academic benchmarks (N=449 with strict zero source-image overlap). Real-world regulatory dossiers introduce diverse paper textures, multi-generation scanning degradations, and non-standard form layouts. For this reason, ARGUS never treats this CNN as an autonomous decider; it serves as one evidence stream feeding into deterministic AICTE APH constraint checks and human-in-the-loop review queues. Full cross-institutional dossier stress testing and dashboard workflows remain the designated focus for Grand Finale deployment.
 
 ---
 

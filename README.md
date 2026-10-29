@@ -19,7 +19,7 @@
 ---
 
 ## SIH 2026 – PS 26261 (AICTE)
-This repo contains the forensic and explainable risk-scoring core of ARGUS (OCR validation, ELA + EXIF tamper detection, risk engine). It is being extended for AICTE Extension-of-Approval dossiers: APH rule engine, signature/QR verification, cross-document checks and an officer dashboard are planned.
+This repository contains the forensic and explainable risk-scoring core of ARGUS: multi-modal OCR validation, multi-scale Error Level Analysis (ELA), EXIF tamper detection, deep visual forgery inference via fine-tuned EfficientNet-B0, and an AICTE APH-calibrated regulatory risk engine. Future extensions for Grand Finale deployment include an interactive officer dashboard and live edge camera capture.
 
 ## Executive Summary & SIH26261 Mission
 
@@ -386,33 +386,36 @@ ARGUS/
 │   ├── models/
 │   │   └── argus_efficientnet_b0_corrected_best.pth
 │   │
-│   ├── modules/
-│   │   ├── document_type_identification.py
-│   │   ├── document_validation.py
-│   │   ├── face_verification.py
-│   │   ├── forgery_prediction.py
-│   │   ├── ocr_extraction.py
-│   │   ├── risk_engine.py
-│   │   └── tampering_detection.py
-│   │
-│   └── data/
-│       └── blacklist.json
-│
-├── frontend/
-│   ├── css/
-│   └── js/
+│   └── modules/
+│       ├── document_type_identification.py
+│       ├── document_validation.py
+│       ├── evidence_quality.py
+│       ├── face_verification.py
+│       ├── forgery_model.py
+│       ├── forgery_prediction.py
+│       ├── ocr_extraction.py
+│       ├── risk_engine.py
+│       └── tampering_detection.py
 │
 ├── model/
-│   ├── argus-main.ipynb
 │   └── results/
+│       ├── ARGUS_DATASET/          (20 benchmark CSV audit logs)
+│       └── figures/                (ROC curve, confusion matrix, Grad-CAM)
+│
+├── notebooks/
+│   └── argus_training_and_evaluation.ipynb
 │
 ├── tests/
 │   ├── test_document_type_identification.py
 │   ├── test_forgery_prediction.py
+│   ├── test_main_integration.py
 │   ├── test_ocr.py
 │   ├── test_risk_engine.py
 │   └── test_tampering_detection.py
 │
+├── demo.gif
+├── demo.mp4
+├── screen.py
 ├── requirements.txt
 ├── README.md
 └── LICENSE
@@ -446,15 +449,17 @@ ARGUS/
 - [x] Cross-dataset audit
 - [x] Production model checkpoint added to app/models/
 
-### Currently Being Integrated
+- [x] Connect trained EfficientNet-B0 model to forgery_prediction.py
+- [x] Connect AI prediction to the ARGUS risk engine
+- [x] Integrate all analysis modules into one inference pipeline
+- [x] Create unified API response (/screen endpoint)
+- [x] End-to-end integration test suite (55/55 tests passing)
+- [x] Command-line runtime demo with uncropped forensic reporting
 
-- [ ] Connect trained EfficientNet-B0 model to forgery_prediction.py
-- [ ] Connect AI prediction to the ARGUS risk engine
-- [ ] Integrate all analysis modules into one inference pipeline
-- [ ] Create unified API response
-- [ ] Connect backend pipeline to frontend
-- [ ] End-to-end testing with real uploaded documents
+### Planned for Grand Finale Deployment
 
+- [ ] Connect backend pipeline to interactive Web UI / Scrutiny Officer Dashboard
+- [ ] Live edge camera integration (ESP32-CAM) for physical identity verification
 ---
 
 ## Future Development
@@ -728,7 +733,9 @@ Model predictions can be incorrect, particularly when documents differ significa
 
 ---
 
-For the **ESP32 camera**, I'd explicitly keep the ESP32 responsible for **capturing/transmitting the image**, not running the face-recognition model. That's much more realistic:
+### Edge Device Integration Architecture (ESP32-CAM)
+
+To optimize bill-of-materials (BOM) and maintain real-time responsiveness, the planned ESP32-CAM module operates strictly as a low-power image capture and transmission node, offloading compute-intensive facial landmarking and embeddings to the ARGUS backend:
 
 ```text
 ESP32-CAM
@@ -744,7 +751,9 @@ compare with ID face
 risk engine
 ```
 
-for the AI-generated detector, I'd keep it as a separate model. Don't mix it into the EfficientNet forgery classifier yet. That gives ARGUS three distinct AI signals later:
+### Multi-Modal AI Disaggregation
+
+The planned synthetic/AI-generated document detector is architecturally decoupled from the EfficientNet pixel forgery classifier, providing independent evidence streams into the final Risk Engine:
 
 ```text
 Document Forgery Model

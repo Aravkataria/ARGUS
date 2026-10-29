@@ -101,6 +101,11 @@ Watch ARGUS execute pixel-level forensics, OCR layout parsing, regulatory integr
 | **Target Worker Throughput** | **~800 dossiers / day** | Target throughput per 4-core node with stateless Redis + FastAPI workers |
 | **Scrutiny Turnaround Time** | **< 15 Minutes (Target)** | Projected acceleration from standard 14-day committee cycle for 200+ page institutional dossiers |
 
+> **Reproducibility & Audit Trail:**
+> - Master Training & Evaluation Notebook: [`notebooks/argus_training_and_evaluation.ipynb`](notebooks/argus_training_and_evaluation.ipynb)
+> - Quantitative Benchmark Datasets & Metrics: [`model/results/ARGUS_DATASET/`](model/results/ARGUS_DATASET/)
+> - Evaluation Curves & Attention Figures: [`model/results/figures/`](model/results/figures/)
+
 ---
 
 ## Verification Modes & Scalability Architecture

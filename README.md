@@ -21,7 +21,7 @@
 ## SIH 2026 – PS 26261 (AICTE)
 This repo contains the forensic and explainable risk-scoring core of ARGUS (OCR validation, ELA + EXIF tamper detection, risk engine). It is being extended for AICTE Extension-of-Approval dossiers: APH rule engine, signature/QR verification, cross-document checks and an officer dashboard are planned.
 
-## 🏛️ Executive Summary & SIH26261 Mission
+## Executive Summary & SIH26261 Mission
 
 **ARGUS** is an on-premises, air-gap-ready regulatory screening and document forensic engine designed for educational and accreditation governance bodies (such as the **All India Council for Technical Education - AICTE**, State Technical Boards, and Universities). 
 
@@ -42,7 +42,7 @@ Annual regulatory approvals (Extension of Approval - EoA, New Institution Approv
 
 ---
 
-## ⚡ Quick Start & Verification (30 Seconds)
+## Quick Start & Verification (30 Seconds)
 
 Any evaluator or scrutinizer can reproduce the full test suite and run the local screening server in four commands:
 
@@ -65,19 +65,19 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 ---
 
-## 📹 Live Prototype Demonstration
+## Live Prototype Demonstration
 
 Watch ARGUS execute pixel-level forensics, OCR layout parsing, regulatory integrity validation, and final risk synthesis live from the terminal runtime:
 
 ![ARGUS Terminal Demonstration](demo.gif)
 
-> 🎥 **[▶️ Click here to view / download the full 1080p HD recording (`demo.mp4`)](demo.mp4)**
+> **[Click here to view / download the full 1080p HD recording (`demo.mp4`)](demo.mp4)**
 
 
 
 ---
 
-## 🌟 Key Differentiators for SIH26261
+## Key Differentiators for SIH26261
 
 | Pillar | How ARGUS Solves It | Regulatory Impact |
 | :--- | :--- | :--- |
@@ -89,7 +89,7 @@ Watch ARGUS execute pixel-level forensics, OCR layout parsing, regulatory integr
 
 ---
 
-## 📊 Empirical Benchmark Validation
+## Empirical Benchmark Validation
 
 | Metric | Benchmark Result | Evaluation Environment & Experimental Protocol |
 | :--- | :--- | :--- |
@@ -103,7 +103,7 @@ Watch ARGUS execute pixel-level forensics, OCR layout parsing, regulatory integr
 
 ---
 
-## 🔒 Verification Modes & Scalability Architecture
+## Verification Modes & Scalability Architecture
 
 ### 1. Dual Verification Modes
 - **Air-Gapped / Offline Scrutiny (Core Operational Mode):** Performs on-premises cryptographic signature validation (parsing embedded PKCS#7 / X.509 certificates and timestamps via pyHanko), multi-scale ELA visual forensics, and local SHA-256 faculty hash deduplication. Operates 100% offline within secure institutional perimeters with zero external data transmission.

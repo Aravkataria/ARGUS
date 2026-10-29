@@ -5,7 +5,7 @@
 [![Category](https://img.shields.io/badge/Category-Software-green.svg)](https://sih.gov.in)
 [![Theme](https://img.shields.io/badge/Theme-Smart_Automation-purple.svg)](https://sih.gov.in)
 [![Team](https://img.shields.io/badge/Team-NAVDRISHTI-red.svg)](https://github.com/Aravkataria/ARGUS)
-[![Tests](https://img.shields.io/badge/Tests-55-brightgreen.svg)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-65-brightgreen.svg)](tests/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 > **Smart India Hackathon 2026 | Problem Statement SIH26261**
@@ -13,7 +13,7 @@
 > **Organization:** AICTE | **Theme:** Smart Automation | **Category:** Software
 > **Team:** NAVDRISHTI | **Team ID:** 198616
 
-ARGUS is an explainable, human-in-the-loop document screening system. It combines visual forgery detection, tamper forensics, OCR validation and an evidence-based risk engine to flag documents that need closer human scrutiny. Every result comes with the reasons behind it. ARGUS is a decision-support tool: it never approves or rejects anything on its own.
+ARGUS is an explainable, human-in-the-loop document screening system. It combines visual forgery detection, tamper forensics, OCR validation and an evidence-based risk engine to flag documents that need closer human scrutiny, for both single images and multi-page PDF dossiers. Every result comes with the reasons behind it. ARGUS is a decision-support tool: it never approves or rejects anything on its own.
 
 ---
 
@@ -42,7 +42,7 @@ The All India Council for Technical Education (AICTE) processes Extension of App
 
 The goal of ARGUS is to perform this first-pass screening automatically, so that scrutiny officers can spend their time on the cases that need expert judgment. Findings are evidence-linked and explainable, and final decisions always stay with the competent authority.
 
-**This repository contains the working forensic and risk-scoring core of ARGUS.** The full AICTE-specific design (regulatory rule engine, signature verification, cross-document checks, officer dashboard) is described in [Planned AICTE Design](#8-planned-aicte-design) and is not yet implemented.
+**This repository contains the working forensic and risk-scoring core of ARGUS, including PDF dossier ingestion.** The AICTE-specific rule engine, signature verification, cross-document checks and officer dashboard are described in [Planned AICTE Design](#8-planned-aicte-design) and are not yet implemented.
 
 ---
 
@@ -50,25 +50,27 @@ The goal of ARGUS is to perform this first-pass screening automatically, so that
 
 | Component | Status | Notes |
 | :--- | :--- | :--- |
-| FastAPI screening service (`/screen`, `/health`) | Implemented | Accepts an image and an optional live photo |
-| Command-line screening tool (`screen.py`) | Implemented | Prints a full forensic report for one image |
+| FastAPI screening service (`/screen`, `/screen/pdf`, `/health`) | Implemented | Accepts an image or a PDF, plus an optional live photo |
+| PDF dossier ingestion | Implemented | Page rendering, digital-text inspection, metadata forensics, page-by-page screening and aggregation |
+| Command-line screening tool (`screen.py`) | Implemented | Accepts an image or a PDF and prints a forensic report |
 | Document type identification | Implemented | Passport, visa, driving licence, national ID, or unknown |
 | OCR extraction and validation | Implemented | EasyOCR, MRZ parsing with checksums, expiry check, optional local blacklist |
 | Rule-based forgery scorecard | Implemented | Interpretable score with stated reasons |
 | EfficientNet-B0 visual forgery model | Implemented | Trained checkpoint included, wired into the pipeline |
 | Tamper forensics (multi-probe ELA and EXIF) | Implemented | Returns a heatmap with the score |
+| PDF metadata forensics | Implemented | Flags known editing software and modification after creation |
 | Evidence quality assessment | Implemented | Reports how reliable the available evidence is |
 | Face verification | Implemented (basic) | Haar cascade detection plus histogram similarity, a placeholder for an embedding model |
-| Evidence-aware risk engine | Implemented | LOW, MEDIUM, HIGH or INCONCLUSIVE tier with reasons |
-| Automated tests | Implemented | 55 test functions in 6 files |
+| Evidence-aware risk engine | Implemented | Risk tier with reasons |
+| Automated tests | Implemented | 65 tests in 7 files |
 | Training and evaluation notebook | Included | `notebooks/argus_training_and_evaluation.ipynb` |
 | AICTE APH rule engine (faculty ratio, cadre ratio, area norms) | Planned | Design only |
-| PDF digital signature and QR verification | Planned | Design only |
+| PDF digital signature and QR verification | Planned | Design only; the current PDF support does not verify signatures |
 | Cross-document and cross-institution checks | Planned | Design only |
 | Officer dashboard and deficiency matrix | Planned | Design only |
 | Issuing-authority connectors (DigiLocker, NAD, State e-District) | Planned | Subject to API access and permissions |
 
-The forensic core (visual forgery detection, tamper analysis, evidence-aware risk scoring) is document-type agnostic and is being extended to AICTE dossiers.
+The visual forgery model and the tamper-forensics modules (ELA and metadata inspection) operate on any document image and are being extended to AICTE dossiers. The OCR, document-type and validation modules currently target identity documents, and the visual model was evaluated on public forensic datasets. Evaluation on AICTE documents such as fire NOCs and land deeds is the next milestone.
 
 ---
 
@@ -83,7 +85,10 @@ The forensic core (visual forgery detection, tamper analysis, evidence-aware ris
 ## 4. How the Current Prototype Works
 
 ```text
-                 Uploaded document image  (+ optional live photo)
+        Uploaded image  or  PDF dossier  (+ optional live photo)
+                                  |
+              PDF only: metadata inspection, page rendering (200 DPI),
+              digital-text inspection. Each page is then handled as an image.
                                   |
                                   v
                        Document type identification
@@ -105,7 +110,8 @@ The forensic core (visual forgery detection, tamper analysis, evidence-aware ris
                   Evidence-aware risk engine (+ face match if provided)
                                   |
                                   v
-        Risk score and tier with reasons: LOW / MEDIUM / HIGH / INCONCLUSIVE
+              Page-level risk score, tier and reasons
+              PDF only: aggregated into a dossier-level result
 ```
 
 **Visual forgery model.** A fine-tuned EfficientNet-B0 takes a 224 x 224 input and outputs a forged probability. The decision bands are:
@@ -120,7 +126,15 @@ The 0.69 threshold was chosen on the validation split by maximizing F1. The chec
 
 **Tamper forensics.** Error Level Analysis (ELA) is probed at JPEG qualities 50, 70 and 90 and normalized block by block to reduce false alarms on genuine scans. EXIF inspection looks for editing-software tags and missing camera or scanner metadata. The module returns a tamper score and a heatmap image.
 
-**Evidence-aware decisions.** The risk engine does not trust a single signal. For example, a low model probability combined with a significant OCR anomaly is sent to manual review rather than marked authentic. When the evidence is too weak to support a conclusion, the result is INCONCLUSIVE instead of a falsely confident score.
+**PDF dossier screening.** For a PDF, ARGUS:
+1. Reads the document metadata (creator, producer, creation and modification dates) and flags known image-editing or design software.
+2. Renders each page to an image (200 DPI by default) and extracts the native digital text of the page.
+3. Runs every rendered page through the same pipeline used for images.
+4. Combines the results: the dossier risk score is the highest page score, the dossier tier is the highest page tier, and all page-level findings are listed with their page numbers.
+
+By default the first 10 pages are processed. The response always reports `total_pages` and `pages_processed`, and the limit can be changed with the `max_pages` argument of `screen_pdf_dossier`.
+
+**Evidence-aware decisions.** The risk engine does not trust a single signal. For example, a low model probability combined with a significant OCR anomaly is sent to manual review rather than marked authentic.
 
 ---
 
@@ -148,7 +162,7 @@ Training, validation and test splits are independent (the notebook checks for ov
 **How to read these numbers.**
 - All forged samples come from CASIA v2.0, which contains tampered natural images, not tampered official documents.
 - CEDAR and RVL-CDIP contain only authentic samples, so they make the overall accuracy and AUC look better than the forgery-detection task alone would. The CASIA v2.0 accuracy of 76.92% is the more conservative figure.
-- These results measure the visual classifier in isolation. They do not yet show performance on AICTE documents (fire NOCs, land deeds, affidavits). Evaluation on representative AICTE-style documents is planned.
+- These results measure the visual classifier on image files. They do not show performance on pages rendered from PDFs, or on AICTE documents such as fire NOCs, land deeds and affidavits. Evaluation on representative AICTE-style documents is planned.
 
 **Reproducibility.**
 - Training and evaluation notebook: [`notebooks/argus_training_and_evaluation.ipynb`](notebooks/argus_training_and_evaluation.ipynb)
@@ -161,6 +175,8 @@ The notebook covers threshold analysis, Grad-CAM attention analysis, forensic fe
 
 ## 6. Quick Start
 
+Developed and tested on Windows with Python 3.14.
+
 ```bash
 # 1. Clone the repository
 git clone https://github.com/Aravkataria/ARGUS.git
@@ -170,7 +186,7 @@ cd ARGUS
 pip install -r requirements.txt
 
 # 3. Run the test suite
-pytest tests/ -v
+python -m pytest -v
 
 # 4. Start the API server
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
@@ -184,6 +200,7 @@ The first OCR request is slow because EasyOCR downloads its models on first use.
 
 ```bash
 python screen.py path/to/document_image.png
+python screen.py path/to/dossier.pdf
 ```
 
 **Optional blacklist.** Document-number blacklist checks read a local file at `app/data/blacklist.json`. Create it if you want to test this feature:
@@ -208,7 +225,7 @@ Multipart form with:
 
 | Field | Required | Description |
 | :--- | :--- | :--- |
-| `document` | Yes | Document image (any `image/*` type) |
+| `document` | Yes | An image (any `image/*` type) or a PDF |
 | `live_photo` | No | Selfie or live image, used for face verification |
 
 ```bash
@@ -217,7 +234,28 @@ curl -X POST http://localhost:8000/screen \
   -F "live_photo=@selfie.jpg"
 ```
 
-The response contains one section per module: `ocr`, `document_type`, `validation`, `forgery_prediction` (with `rules` and `visual_model`), `evidence_quality`, `tampering` (including a base64 heatmap), `face_verification`, and `risk` (score, tier, decision and reasons).
+For an image, the response contains one section per module: `ocr`, `document_type`, `validation`, `forgery_prediction` (with `rules` and `visual_model`), `evidence_quality`, `tampering` (including a base64 heatmap), `face_verification`, and `risk` (score, tier, decision and reasons).
+
+### `POST /screen/pdf`
+
+A dedicated endpoint for PDF dossiers, with the same form fields as `/screen`. Uploading a PDF to `/screen` produces the same result.
+
+```bash
+curl -X POST http://localhost:8000/screen/pdf \
+  -F "document=@dossier.pdf"
+```
+
+The PDF response contains:
+
+| Field | Description |
+| :--- | :--- |
+| `document_format` | `PDF` |
+| `total_pages` / `pages_processed` | Pages in the file and pages actually analysed |
+| `dossier_risk_tier` / `dossier_risk_score` | Highest page tier and highest page score |
+| `risk` | Score, tier, decision and the combined list of reasons |
+| `metadata_audit` | Creator, producer, dates, and any editing-software flags |
+| `findings_summary` | Findings from all pages, each labelled with its page number |
+| `pages` | Per-page document type, risk tier and score, tamper and ELA scores, visual model output, digital-text information and findings |
 
 ---
 
@@ -232,7 +270,7 @@ ARGUS is designed around four pillars for AICTE dossier scrutiny:
 3. **Deterministic APH norms solver.** AI is used only to extract data. Compliance is calculated by deterministic rules from the AICTE Approval Process Handbook (faculty-student ratio, cadre ratio, area requirements), and each calculation records its inputs, outcome and the provision applied. Missing or ambiguous data is flagged for manual review, never assumed compliant.
 4. **Cross-document and cross-entity triangulation.** An evidence graph links declarations to supporting documents, for example approved intake against fire-NOC capacity, and flags possible duplicate faculty deployment across institutions using privacy-controlled, keyed identifiers where legally permitted, always with human review.
 
-**Planned technology stack:** PyMuPDF for PDF rendering, EasyOCR with TrOCR on selected regions, pyHanko and PyZbar for signatures and QR codes, Redis for job queuing, PostgreSQL for findings and audit events, and a React-based scrutiny officer dashboard with heatmap overlays and a deficiency matrix.
+**Planned technology stack:** TrOCR on selected regions, pyHanko and PyZbar for signatures and QR codes, Redis for job queuing, PostgreSQL for findings and audit events, and a React-based scrutiny officer dashboard with heatmap overlays and a deficiency matrix.
 
 **Illustrative output.** The table below shows the intended deficiency matrix on a synthetic dossier. It is a design mock-up, not output from the current code.
 
@@ -262,7 +300,7 @@ These targets will be benchmarked on specified four-core hardware with represent
 
 - **Advisory only.** ARGUS supports scrutiny officers. Statutory scrutiny, inspection and final regulatory decisions remain with the competent authority, and human review is required before any adverse action.
 - **Explainable.** Every flag carries its evidence and reasons. The rule-based scorecard is interpretable by design.
-- **No overconfident verdicts.** Weak or conflicting evidence produces INCONCLUSIVE or manual-review outcomes.
+- **Conservative aggregation.** A dossier is only as reassuring as its most suspicious page.
 - **Privacy.** The design keeps document processing on local infrastructure with no commercial API calls. Any identity matching in the planned design would be limited to authorized deployments, use keyed identifiers, require access controls and key management, and always be reviewed by a person.
 - **Access control.** The system must not bypass access controls or assume access to restricted databases.
 
@@ -270,11 +308,15 @@ These targets will be benchmarked on specified four-core hardware with represent
 
 ## 10. Known Limitations
 
-- Current scope: the prototype screens document images (PDF ingestion is the next step) and has been evaluated on public forensic datasets. Evaluation on AICTE-style documents such as fire NOCs and land deeds is the next milestone.
-- Forgery-detection results come from CASIA v2.0 forged samples only. Performance on official-document forgeries is not yet measured.
-- ELA and image classifiers can be affected by compression, low-quality scans and camera distortion, which may cause false alarms.
+- Current scope: the OCR, document-type identification and validation modules target identity documents, so AICTE documents such as fire NOCs and land deeds are typically reported as an unrecognized document type. The visual model and tamper forensics work on any image, and extending the rule-based checks to AICTE documents is the next milestone.
+- Forgery-detection results come from CASIA v2.0 forged samples only. Performance on official-document forgeries and on pages rendered from PDFs is not yet measured.
+- Error Level Analysis relies on JPEG compression history. A page rendered from a digitally generated PDF has none, so ELA is of limited use there. It is more informative for scanned pages and embedded scan images.
+- PDF metadata checks are heuristics. Documents processed with ordinary PDF utilities or design tools can legitimately carry their names in the metadata.
+- PDF digital signatures are not verified in the current code.
+- Only the first 10 pages of a PDF are analysed by default.
 - Face verification uses a lightweight histogram comparison that is sensitive to lighting and pose. It is a placeholder for a proper embedding model.
 - The blacklist is a local JSON file standing in for a real government database.
+- Processing speed and memory use have not been benchmarked.
 - The planned AICTE components listed in [Project Status](#2-project-status) are not implemented.
 
 ---
@@ -284,7 +326,7 @@ These targets will be benchmarked on specified four-core hardware with represent
 ```text
 ARGUS/
 ├── app/
-│   ├── main.py                          # FastAPI app (/screen, /health)
+│   ├── main.py                          # FastAPI app (/screen, /screen/pdf, /health)
 │   ├── models/
 │   │   └── argus_efficientnet_b0_corrected_best.pth
 │   └── modules/
@@ -294,6 +336,7 @@ ARGUS/
 │       ├── forgery_model.py
 │       ├── forgery_prediction.py
 │       ├── tampering_detection.py
+│       ├── pdf_processor.py             # PDF ingestion and dossier aggregation
 │       ├── evidence_quality.py
 │       ├── face_verification.py
 │       └── risk_engine.py
@@ -303,8 +346,8 @@ ARGUS/
 │       └── figures/                     # ROC curve, confusion matrix, Grad-CAM
 ├── notebooks/
 │   └── argus_training_and_evaluation.ipynb
-├── tests/                               # 55 test functions in 6 files
-├── screen.py                            # command-line screening tool
+├── tests/                               # 65 tests in 7 files
+├── screen.py                            # command-line screening tool (image or PDF)
 ├── demo.gif / demo.mp4                  # terminal demonstration
 ├── final.pdf / final.pptx               # SIH 2026 presentation
 ├── requirements.txt
@@ -315,13 +358,14 @@ ARGUS/
 
 ## 12. Roadmap
 
-1. Evaluate the visual model on AICTE-style documents and add document-forgery data.
+1. Evaluate the visual model on AICTE-style documents, including pages rendered from PDFs, and add document-forgery data.
 2. Build the deterministic APH rule engine with versioned, configurable checklists.
-3. Add PDF ingestion, PAdES signature validation and QR verification.
-4. Add cross-document consistency checks and privacy-controlled duplicate-faculty detection.
-5. Build the scrutiny officer dashboard with evidence overlays and a deficiency matrix.
-6. Benchmark processing time, memory and throughput on four-core CPU hardware.
-7. Integrate issuing-authority connectors (DigiLocker, NAD, State e-District) where access is authorized.
+3. Add PAdES signature validation and QR verification for PDFs.
+4. Run forensics on images embedded in PDFs, in addition to rendered pages.
+5. Add cross-document consistency checks and privacy-controlled duplicate-faculty detection.
+6. Build the scrutiny officer dashboard with evidence overlays and a deficiency matrix.
+7. Benchmark processing time, memory and throughput on four-core CPU hardware.
+8. Integrate issuing-authority connectors (DigiLocker, NAD, State e-District) where access is authorized.
 
 ---
 

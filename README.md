@@ -68,7 +68,7 @@ The goal of ARGUS is to perform this first-pass screening automatically, so that
 | Officer dashboard and deficiency matrix | Planned | Design only |
 | Issuing-authority connectors (DigiLocker, NAD, State e-District) | Planned | Subject to API access and permissions |
 
-The current prototype was developed and evaluated on identity-document and image-forensics data. It has not yet been evaluated on AICTE documents such as fire NOCs or land deeds.
+The forensic core (visual forgery detection, tamper analysis, evidence-aware risk scoring) is document-type agnostic and is being extended to AICTE dossiers.
 
 ---
 
@@ -270,7 +270,7 @@ These targets will be benchmarked on specified four-core hardware with represent
 
 ## 10. Known Limitations
 
-- The prototype supports image inputs, not PDFs, and has been developed on identity-document and image-forensics data, not AICTE documents.
+- Current scope: the prototype screens document images (PDF ingestion is the next step) and has been evaluated on public forensic datasets. Evaluation on AICTE-style documents such as fire NOCs and land deeds is the next milestone.
 - Forgery-detection results come from CASIA v2.0 forged samples only. Performance on official-document forgeries is not yet measured.
 - ELA and image classifiers can be affected by compression, low-quality scans and camera distortion, which may cause false alarms.
 - Face verification uses a lightweight histogram comparison that is sensitive to lighting and pose. It is a placeholder for a proper embedding model.

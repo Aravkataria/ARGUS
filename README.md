@@ -5,7 +5,7 @@
 [![Category](https://img.shields.io/badge/Category-Software-green.svg)](https://sih.gov.in)
 [![Theme](https://img.shields.io/badge/Theme-Smart_Automation-purple.svg)](https://sih.gov.in)
 [![Team](https://img.shields.io/badge/Team-NAVDRISHTI-red.svg)](https://github.com/Aravkataria/ARGUS)
-[![Tests](https://img.shields.io/badge/Tests-65-brightgreen.svg)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-67-brightgreen.svg)](tests/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 > **Smart India Hackathon 2026 | Problem Statement SIH26261**
@@ -62,7 +62,7 @@ The goal of ARGUS is to perform this first-pass screening automatically, so that
 | Evidence quality assessment | Implemented | Reports how reliable the available evidence is |
 | Face verification | Implemented (basic) | Haar cascade detection plus histogram similarity, a placeholder for an embedding model |
 | Evidence-aware risk engine | Implemented | Risk tier with reasons |
-| Automated tests | Implemented | 65 tests in 7 files |
+| Automated tests | Implemented | 67 tests in 7 files |
 | Training and evaluation notebook | Included | `notebooks/argus_training_and_evaluation.ipynb` |
 | AICTE APH rule engine (faculty ratio, cadre ratio, area norms) | Planned | Design only |
 | PDF digital signature and QR verification | Planned | Design only; the current PDF support does not verify signatures |
@@ -227,6 +227,7 @@ Multipart form with:
 | :--- | :--- | :--- |
 | `document` | Yes | An image (any `image/*` type) or a PDF |
 | `live_photo` | No | Selfie or live image, used for face verification |
+| `max_pages` | No | Max PDF pages to screen (default: 10). If total pages exceed this, `partial_coverage` is flagged and manual review is enforced |
 
 ```bash
 curl -X POST http://localhost:8000/screen \
@@ -251,6 +252,7 @@ The PDF response contains:
 | :--- | :--- |
 | `document_format` | `PDF` |
 | `total_pages` / `pages_processed` | Pages in the file and pages actually analysed |
+| `partial_coverage` | `true` if `pages_processed < total_pages`, enforcing manual officer review |
 | `dossier_risk_tier` / `dossier_risk_score` | Highest page tier and highest page score |
 | `risk` | Score, tier, decision and the combined list of reasons |
 | `metadata_audit` | Creator, producer, dates, and any editing-software flags |
@@ -346,7 +348,7 @@ ARGUS/
 │       └── figures/                     # ROC curve, confusion matrix, Grad-CAM
 ├── notebooks/
 │   └── argus_training_and_evaluation.ipynb
-├── tests/                               # 65 tests in 7 files
+├── tests/                               # 67 tests in 7 files
 ├── screen.py                            # command-line screening tool (image or PDF)
 ├── demo.gif / demo.mp4                  # terminal demonstration
 ├── final.pdf / final.pptx               # SIH 2026 presentation

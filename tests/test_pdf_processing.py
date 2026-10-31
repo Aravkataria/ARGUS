@@ -272,3 +272,78 @@ def test_screen_pdf_dedicated_endpoint(monkeypatch):
     body = response.json()
     assert body["document_format"] == "PDF"
     assert "dossier_risk_tier" in body
+
+
+def test_screen_pdf_dossier_partial_coverage_forces_manual_review(monkeypatch):
+    """
+    When total_pages > max_pages, partial_coverage must be True, a deficiency
+    warning must be added, and the decision must be MANUAL_REVIEW (not LIKELY_AUTHENTIC).
+    """
+    pdf_bytes = _create_sample_pdf(num_pages=3)
+
+    monkeypatch.setattr(
+        "app.modules.pdf_processor.extract_document_fields",
+        lambda p: {
+            "mrz_found": True,
+            "document_type": "P",
+            "checks": {"overall_valid": True},
+            "document_number": "PP1234567",
+            "fields": {},
+        },
+    )
+    monkeypatch.setattr(
+        "app.modules.pdf_processor.analyze_tampering",
+        lambda p: {"tampering_score": 0.01, "ela_score": 0.01, "metadata": {"flags": []}},
+    )
+    monkeypatch.setattr(
+        "app.modules.pdf_processor.predict_visual_forgery",
+        lambda img: {"label": "Authentic", "forged_probability": 0.02, "authentic_probability": 0.98},
+    )
+
+    # Process only 1 out of 3 pages
+    result = screen_pdf_dossier(pdf_bytes, max_pages=1)
+
+    assert result["total_pages"] == 3
+    assert result["pages_processed"] == 1
+    assert result["partial_coverage"] is True
+    # Crucial safety invariant: Must NOT be certified LIKELY_AUTHENTIC
+    assert result["decision"] == "MANUAL_REVIEW"
+    assert any("Partial dossier coverage" in f for f in result["findings_summary"])
+
+
+def test_screen_pdf_endpoint_with_custom_max_pages(monkeypatch):
+    """
+    Test passing max_pages form parameter through /screen/pdf.
+    """
+    pdf_bytes = _create_sample_pdf(num_pages=3)
+
+    monkeypatch.setattr(
+        "app.modules.pdf_processor.extract_document_fields",
+        lambda p: {
+            "mrz_found": True,
+            "document_type": "P",
+            "checks": {"overall_valid": True},
+            "document_number": "PP1234567",
+            "fields": {},
+        },
+    )
+    monkeypatch.setattr(
+        "app.modules.pdf_processor.analyze_tampering",
+        lambda p: {"tampering_score": 0.01, "ela_score": 0.01, "metadata": {"flags": []}},
+    )
+    monkeypatch.setattr(
+        "app.modules.pdf_processor.predict_visual_forgery",
+        lambda img: {"label": "Authentic", "forged_probability": 0.02, "authentic_probability": 0.98},
+    )
+
+    files = {"document": ("dossier.pdf", pdf_bytes, "application/pdf")}
+    data = {"max_pages": "2"}
+    response = client.post("/screen/pdf", files=files, data=data)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total_pages"] == 3
+    assert body["pages_processed"] == 2
+    assert body["partial_coverage"] is True
+    assert body["decision"] == "MANUAL_REVIEW"
+

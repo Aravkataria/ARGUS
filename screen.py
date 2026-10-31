@@ -55,8 +55,11 @@ def screen_pdf_file(doc_path: str):
     creator = meta.get("creator") or "N/A"
     producer = meta.get("producer") or "N/A"
     flags = meta.get("flags", [])
+    partial = result.get("partial_coverage", False)
     print(f"      * Total Pages Ingested   : {result.get('total_pages', 0)}")
     print(f"      * Pages Processed        : {result.get('pages_processed', 0)}")
+    if partial:
+        print(f"      * Coverage Status        : PARTIAL ({result.get('pages_processed')}/{result.get('total_pages')} pages screened)")
     print(f"      * PDF Creator / Producer : '{creator}' / '{producer}'")
     print(f"      * Synthetic Editing Tool : {'FLAGGED - ' + '; '.join(flags) if meta.get('suspicious_software') else 'Clean (No editing tools detected)'}")
 
@@ -86,7 +89,8 @@ def screen_pdf_file(doc_path: str):
     print(f"  * DECISION STATUS     : {decision}")
     print(f"  * DOSSIER RISK TIER   : {tier}")
     print(f"  * COMPOSITE RISK SCORE: {score:.1f} / 100")
-    print(f"  * SCRUTINY ADVISORY   : {'MANUAL REVIEW REQUIRED' if tier in ('MEDIUM', 'HIGH', 'CRITICAL', 'INCONCLUSIVE') else 'VERIFIED'}")
+    print(f"  * PARTIAL COVERAGE    : {'YES (Only ' + str(result.get('pages_processed')) + '/' + str(result.get('total_pages')) + ' pages screened)' if partial else 'NO (Full dossier screened)'}")
+    print(f"  * SCRUTINY ADVISORY   : {'MANUAL REVIEW REQUIRED' if (tier in ('MEDIUM', 'HIGH', 'CRITICAL', 'INCONCLUSIVE') or partial) else 'VERIFIED'}")
 
     findings = result.get("findings_summary", [])
     if findings:

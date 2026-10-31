@@ -65,14 +65,14 @@ except ImportError:
 
 import shutil
 import uuid
-from typing import Optional
+from typing import Any, Dict, Optional
 
 
 # ============================================================================
 # FASTAPI
 # ============================================================================
 
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
 
 
@@ -211,6 +211,7 @@ def health():
 async def screen_document(
     document: UploadFile = File(...),
     live_photo: Optional[UploadFile] = File(None),
+    max_pages: Optional[int] = Form(None),
 ):
     """
     Run the complete ARGUS screening pipeline.
@@ -276,10 +277,13 @@ async def screen_document(
     try:
 
         if is_pdf_upload or is_pdf(doc_path):
-            return screen_pdf_dossier(
-                pdf_path_or_bytes=doc_path,
-                live_photo_path=live_path,
-            )
+            pdf_kwargs: Dict[str, Any] = {
+                "pdf_path_or_bytes": doc_path,
+                "live_photo_path": live_path,
+            }
+            if max_pages is not None and max_pages > 0:
+                pdf_kwargs["max_pages"] = max_pages
+            return screen_pdf_dossier(**pdf_kwargs)
 
         # ====================================================================
         # MODULE 1 — OCR + MRZ EXTRACTION
@@ -572,6 +576,7 @@ async def screen_document(
 async def screen_pdf_endpoint(
     document: UploadFile = File(...),
     live_photo: Optional[UploadFile] = File(None),
+    max_pages: Optional[int] = Form(None),
 ):
     """
     Dedicated endpoint for multi-page regulatory PDF dossier screening.
@@ -579,4 +584,5 @@ async def screen_pdf_endpoint(
     return await screen_document(
         document=document,
         live_photo=live_photo,
+        max_pages=max_pages,
     )

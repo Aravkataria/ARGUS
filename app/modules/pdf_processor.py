@@ -178,7 +178,7 @@ def extract_pdf_page_digital_text(page: fitz.Page) -> Dict[str, Any]:
 def screen_pdf_dossier(
     pdf_path_or_bytes: Union[str, bytes],
     live_photo_path: Optional[str] = None,
-    max_pages: int = 10,
+    max_pages: Optional[int] = 10,
     dpi: int = 200,
 ) -> Dict[str, Any]:
     """
@@ -196,13 +196,24 @@ def screen_pdf_dossier(
             doc = fitz.open(pdf_path_or_bytes)
 
         total_pages = doc.page_count
-        pages_to_process = min(total_pages, max_pages)
+        if max_pages is not None and max_pages > 0:
+            pages_to_process = min(total_pages, max_pages)
+        else:
+            pages_to_process = total_pages
+
+        partial_coverage = pages_to_process < total_pages
 
         # 1. Inspect Document-Level Metadata
         meta_audit = inspect_pdf_metadata(doc)
 
         pages_results: List[Dict[str, Any]] = []
         dossier_deficiencies: List[str] = []
+
+        if partial_coverage:
+            dossier_deficiencies.append(
+                f"Partial dossier coverage: Only {pages_to_process} of {total_pages} pages were screened "
+                f"(cap: {max_pages} pages). The remaining {total_pages - pages_to_process} pages were not evaluated."
+            )
 
         if meta_audit.get("flags"):
             for flag in meta_audit["flags"]:
@@ -345,12 +356,18 @@ def screen_pdf_dossier(
             max_risk_score = max(max_risk_score, 75.0)
 
         unique_deficiencies = list(dict.fromkeys(dossier_deficiencies))
-        decision = "MANUAL_REVIEW" if highest_tier in ("MEDIUM", "HIGH", "CRITICAL") else "LIKELY_AUTHENTIC"
+        if highest_tier in ("MEDIUM", "HIGH", "CRITICAL"):
+            decision = "MANUAL_REVIEW"
+        elif partial_coverage:
+            decision = "MANUAL_REVIEW"
+        else:
+            decision = "LIKELY_AUTHENTIC"
 
         return {
             "document_format": "PDF",
             "total_pages": total_pages,
             "pages_processed": pages_to_process,
+            "partial_coverage": partial_coverage,
             "dossier_risk_tier": highest_tier,
             "dossier_risk_score": round(max_risk_score, 1),
             "risk": {

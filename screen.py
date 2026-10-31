@@ -43,20 +43,24 @@ def print_banner():
     print(banner)
 
 
-def screen_pdf_file(doc_path: str):
+def screen_pdf_file(doc_path: str, max_pages: int = 10):
     print(f"[*] Ingesting Multi-Page PDF Dossier: {os.path.basename(doc_path)}")
     print(f"[*] File Size: {os.path.getsize(doc_path) / 1024:.1f} KB | Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"[*] Screening Cap: Process up to {max_pages} pages")
     print("-" * 80)
 
     # 1. DOSSIER METADATA AUDIT
     print("\n[1/3] Forensic Metadata & Editing Tool Stream Inspection...")
-    result = screen_pdf_dossier(doc_path)
+    result = screen_pdf_dossier(doc_path, max_pages=max_pages)
     meta = result.get("metadata_audit", {})
     creator = meta.get("creator") or "N/A"
     producer = meta.get("producer") or "N/A"
     flags = meta.get("flags", [])
+    partial = result.get("partial_coverage", False)
     print(f"      * Total Pages Ingested   : {result.get('total_pages', 0)}")
     print(f"      * Pages Processed        : {result.get('pages_processed', 0)}")
+    if partial:
+        print(f"      * Coverage Status        : PARTIAL ({result.get('pages_processed')}/{result.get('total_pages')} pages screened)")
     print(f"      * PDF Creator / Producer : '{creator}' / '{producer}'")
     print(f"      * Synthetic Editing Tool : {'FLAGGED - ' + '; '.join(flags) if meta.get('suspicious_software') else 'Clean (No editing tools detected)'}")
 
@@ -86,7 +90,8 @@ def screen_pdf_file(doc_path: str):
     print(f"  * DECISION STATUS     : {decision}")
     print(f"  * DOSSIER RISK TIER   : {tier}")
     print(f"  * COMPOSITE RISK SCORE: {score:.1f} / 100")
-    print(f"  * SCRUTINY ADVISORY   : {'MANUAL REVIEW REQUIRED' if tier in ('MEDIUM', 'HIGH', 'CRITICAL', 'INCONCLUSIVE') else 'VERIFIED'}")
+    print(f"  * PARTIAL COVERAGE    : {'YES (Only ' + str(result.get('pages_processed')) + '/' + str(result.get('total_pages')) + ' pages screened)' if partial else 'NO (Full dossier screened)'}")
+    print(f"  * SCRUTINY ADVISORY   : {'MANUAL REVIEW REQUIRED' if (tier in ('MEDIUM', 'HIGH', 'CRITICAL', 'INCONCLUSIVE') or partial) else 'VERIFIED'}")
 
     findings = result.get("findings_summary", [])
     if findings:
@@ -96,13 +101,13 @@ def screen_pdf_file(doc_path: str):
     print("=" * 80 + "\n")
 
 
-def screen_file(doc_path: str):
+def screen_file(doc_path: str, max_pages: int = 10):
     if not os.path.exists(doc_path):
         print(f"[-] Error: File not found: {doc_path}")
         return
 
     if is_pdf(doc_path):
-        screen_pdf_file(doc_path)
+        screen_pdf_file(doc_path, max_pages=max_pages)
         return
 
     print(f"[*] Ingesting Document: {os.path.basename(doc_path)}")
@@ -170,8 +175,10 @@ if __name__ == "__main__":
     print_banner()
     if len(sys.argv) > 1:
         doc = sys.argv[1]
-        screen_file(doc)
+        max_p = int(sys.argv[2]) if len(sys.argv) > 2 else 10
+        screen_file(doc, max_pages=max_p)
     else:
-        print("[-] Usage: python screen.py <path_to_document_image>")
-        print("    Example: python screen.py \"C:\\path\\to\\certificate.png\"")
+        print("[-] Usage: python screen.py <path_to_document_or_pdf> [max_pages]")
+        print("    Example (Image): python screen.py \"C:\\path\\to\\certificate.png\"")
+        print("    Example (PDF)  : python screen.py \"C:\\path\\to\\dossier.pdf\" 5")
         sys.exit(0)

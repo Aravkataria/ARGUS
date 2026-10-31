@@ -58,7 +58,11 @@ import cv2
 import numpy as np
 import io
 import base64
+import logging
 import exifread
+
+# Suppress noisy ExifNotFound warnings on rasterized PNG images
+logging.getLogger("exifread").setLevel(logging.ERROR)
 from PIL import Image
 
 

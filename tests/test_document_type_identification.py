@@ -75,3 +75,22 @@ def test_conflicting_signals_are_both_scored_and_reported():
     assert "passport" in result["candidate_scores"]
     assert "visa" in result["candidate_scores"]
     assert result["candidate_scores"]["passport"] > result["candidate_scores"]["visa"]
+
+def test_software_license_text_not_misidentified_as_driving_license():
+    ocr = {
+        "mrz_found": False,
+        "raw_text": ["Released under the MIT License.", "Classification of algorithms in Python class."],
+        "fields": {},
+    }
+    result = identify_document_type(ocr)
+    assert result["document_type"] == "unknown"
+
+
+def test_generic_presentation_text_not_misidentified_as_visa():
+    ocr = {
+        "mrz_found": False,
+        "raw_text": ["Smart India Hackathon 2026", "PS Category: Software", "Team ID: 198616"],
+        "fields": {},
+    }
+    result = identify_document_type(ocr)
+    assert result["document_type"] == "unknown"

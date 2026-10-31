@@ -305,7 +305,7 @@ FIELD_LABELS: dict[str, list[str]] = {
         "licence no", "license no", "permit no", "card no", "no de passeport",
     ],
     "visa_number": ["visa no", "visa number"],
-    "visa_type": ["visa type", "type of visa", "category"],
+    "visa_type": ["visa type", "type of visa", "visa category"],
     "entry_validity": ["entries", "no of entries", "valid for"],
     "duration_of_stay": ["duration of stay", "length of stay"],
     "nationality": ["nationality", "nationalite"],
@@ -313,7 +313,7 @@ FIELD_LABELS: dict[str, list[str]] = {
     "date_of_issue": ["date of issue", "issue date", "issued", "date of grant"],
     "date_of_expiry": ["date of expiry", "expiry date", "valid until", "valid till", "expiration"],
     "sex": ["sex", "gender", "sexe"],
-    "license_class": ["class", "vehicle class", "cat."],
+    "license_class": ["vehicle class", "license class", "licence class", "class of vehicle"],
     "place_of_birth": ["place of birth", "birth place"],
     "issuing_authority": ["authority", "issuing authority", "autorite"],
 }

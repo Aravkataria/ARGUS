@@ -173,10 +173,6 @@ def _all_ocr_text(ocr_result: Dict[str, Any]) -> str:
         for key, value in fields.items():
 
             parts.append(
-                _safe_text(key)
-            )
-
-            parts.append(
                 _safe_text(value)
             )
 
@@ -354,8 +350,6 @@ VISA_KEYWORDS = (
     "ENTRY VISA",
     "VISA TYPE",
     "VISA NUMBER",
-    "VALID UNTIL",
-    "ENTRIES",
 )
 
 
@@ -364,12 +358,8 @@ DRIVING_LICENSE_KEYWORDS = (
     "DRIVING LICENSE",
     "DRIVER LICENSE",
     "DRIVER LICENCE",
+    "MOTOR VEHICLE",
     "DL NO",
-    "LICENCE NO",
-    "LICENSE NO",
-    "LICENSE NUMBER",
-    "LICENCE NUMBER",
-    "CLASS",
     "VEHICLE CLASS",
 )
 
@@ -646,6 +636,20 @@ def _score_driving_license(
     """
     Calculate driving-license-specific evidence.
     """
+
+    # Software / general open-source licenses must never be identified as driving licenses
+    software_license_patterns = (
+        "MIT LICENSE",
+        "APACHE LICENSE",
+        "SOFTWARE LICENSE",
+        "BSD LICENSE",
+        "GNU GENERAL",
+        "LICENSE AGREEMENT",
+    )
+    for pat in software_license_patterns:
+        if pat in text:
+            if not any(dk in text for dk in ("DRIVING LICENCE", "DRIVING LICENSE", "DRIVER LICENSE", "DRIVER LICENCE")):
+                return 0.0, ["Ignored general/software license pattern: " + pat]
 
     score = 0.0
     evidence: List[str] = []

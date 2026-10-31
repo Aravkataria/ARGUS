@@ -5,7 +5,7 @@
 [![Category](https://img.shields.io/badge/Category-Software-green.svg)](https://sih.gov.in)
 [![Theme](https://img.shields.io/badge/Theme-Smart_Automation-purple.svg)](https://sih.gov.in)
 [![Team](https://img.shields.io/badge/Team-NAVDRISHTI-red.svg)](https://github.com/Aravkataria/ARGUS)
-[![Tests](https://img.shields.io/badge/Tests-67-brightgreen.svg)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-69-brightgreen.svg)](tests/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 > **Smart India Hackathon 2026 | Problem Statement SIH26261**
@@ -27,7 +27,7 @@
 | **Detection signals** | EfficientNet-B0 forgery model, multi-probe Error Level Analysis, EXIF and PDF metadata forensics, MRZ checksums, rule-based scorecard |
 | **Dossier coverage** | Configurable screening window (`max_pages`), with explicit coverage reporting |
 | **Runs** | Locally on CPU (GPU used automatically for OCR when CUDA is available), no external API calls |
-| **Quality** | 67 automated tests across 7 files, evaluation notebook and logs included |
+| **Quality** | 69 automated tests across 7 files, evaluation notebook and logs included |
 
 ---
 
@@ -79,7 +79,7 @@ ARGUS performs the **first-pass screening automatically**, so that scrutiny offi
 | Evidence quality assessment | Implemented | Reports how reliable the available evidence is |
 | Evidence-aware risk engine | Implemented | Risk tier, decision and reasons |
 | Face verification | Implemented (basic) | Haar cascade plus histogram similarity; designed to be swapped for an embedding model |
-| Automated tests | Implemented | 67 tests in 7 files |
+| Automated tests | Implemented | 69 tests in 7 files |
 | Training and evaluation notebook | Included | `notebooks/argus_training_and_evaluation.ipynb` |
 | AICTE APH rule engine (faculty ratio, cadre ratio, area norms) | Planned | Design only |
 | PDF digital signature and QR verification | Planned | Design only |
@@ -405,7 +405,7 @@ ARGUS/
 │       └── figures/                     # ROC curve, confusion matrix, Grad-CAM
 ├── notebooks/
 │   └── argus_training_and_evaluation.ipynb
-├── tests/                               # 67 tests in 7 files
+├── tests/                               # 69 tests in 7 files
 ├── screen.py                            # command-line screening tool (image or PDF)
 ├── demo.gif / demo.mp4                  # terminal demonstration
 ├── final.pdf / final.pptx               # SIH 2026 presentation

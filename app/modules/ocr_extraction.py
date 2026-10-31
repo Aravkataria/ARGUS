@@ -34,7 +34,9 @@ def _get_reader():
     global _reader
     if _reader is None:
         import easyocr
-        _reader = easyocr.Reader(["en"], gpu=False)
+        import torch
+        use_gpu = torch.cuda.is_available()
+        _reader = easyocr.Reader(["en"], gpu=use_gpu)
     return _reader
 
 
